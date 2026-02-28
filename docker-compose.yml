@@ -1,0 +1,7 @@
+services:
+  app:
+    build: .
+    volumes:
+      - ./app:/app
+      - ./receipts:/receipts
+    command: python main.py

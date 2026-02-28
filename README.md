@@ -1,2 +1,4 @@
 # desc_receipt
-Analyze receipt doc and generate meta data.
+レシート画像を解析し、レシートのメタデータを生成する
+
+
