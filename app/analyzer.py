@@ -1,3 +1,5 @@
+import json
+import os
 import re
 import datetime
 from datetime import date
@@ -5,8 +7,10 @@ from typing import Optional
 
 
 class Analyzer:
-    def __init__(self, text: list[dict] | None = None):
-        self.text: list[dict] = text if text is not None else []
+    def __init__(self, lines: list[str] | None = None):
+        self.lines: list[str] = lines if lines is not None else []
+        self.cleaned_lines: list[str] = []
+        self.sum_flg = False
 
     def get_recite_metadata(self):
         self._cleansing()
@@ -14,32 +18,41 @@ class Analyzer:
         return metadata
 
     def _cleansing(self):
-        for row in self.text:
+        for line in self.lines:
             # 不要文字削除
-            clean = re.sub(r"[^\w\u3040-\u30FF\u4E00-\u9FFF()-¥,.\\]+", "", row["text"])
-            row["clean_text"] = clean
+            clean = re.sub(r"[^\w\u3040-\u30FF\u4E00-\u9FFF()-¥,.\\]+", "", line)
+            self.cleaned_lines.append(clean)
+            print(clean)
 
     def get_metadata(self):
 
         meta_data = {
+            "store_name": None,
             "registration_number": None,
             "tel_number": None,
             "date": None,
             "time": None,
+            "sum": None
         }
 
-        for row in self.text:
+        for line in self.cleaned_lines:
             if meta_data['registration_number'] is None:
-                meta_data['registration_number'] = self._get_registration_number(row["clean_text"])
+                meta_data['registration_number'] = self._get_registration_number(line)
 
             if meta_data['tel_number'] is None:
-                meta_data['tel_number'] = self._get_tel_number(row["clean_text"])
+                meta_data['tel_number'] = self._get_tel_number(line)
 
             if meta_data['date'] is None:
-                meta_data['date'] = self._get_date(row["clean_text"])
+                meta_data['date'] = self._get_date(line)
 
             if meta_data['time'] is None:
-                meta_data['time'] = self._get_time(row["clean_text"])
+                meta_data['time'] = self._get_time(line)
+
+            if meta_data['sum'] is None:
+                meta_data['sum'] = self._get_sum_amount(line)
+
+            if meta_data['store_name'] is None:
+                meta_data['store_name'] = self._get_store_name(meta_data)
 
         print(meta_data)
         return meta_data
@@ -69,19 +82,21 @@ class Analyzer:
 
     def _get_time(self, text) -> Optional[datetime.time]:
 
-        re_time = re.compile(r"(?P<h>(?:[01]?\d|2[0-3])):(?P<m>[0-5]\d)")
+        re_time1 = re.compile(r"(?P<h>(?:[01]?\d|2[0-3])):(?P<m>[0-5]\d)")
+        re_time2 = re.compile(r"(?P<h>(?:[01]?\d|2[0-3]))時(?P<m>[0-5]\d)分")
 
         text = text.translate(str.maketrans("０１２３４５６７８９", "0123456789"))
         text = text.strip()
 
         # 年月日パターン
-        m = re_time.search(text)
-        if m:
-            try:
-                h, m = self._parse_hm(m)
-                return datetime.time(h, m)
-            except ValueError:
-                return None  # ここは continue にしてもOK（別表記を探すなら）
+        for rx in (re_time1, re_time2):
+            m = rx.search(text)
+            if m:
+                try:
+                    h, m = self._parse_hm(m)
+                    return datetime.time(h, m)
+                except ValueError:
+                    return None  # ここは continue にしてもOK（別表記を探すなら）
 
         return None
 
@@ -119,14 +134,15 @@ class Analyzer:
     def _get_tel_number(self, text) -> str | None:
         tel_number = None
 
-        regex = re.compile(
-            r"(?<!\d)"  # 直前が数字ではない
-            r"(?:0\d{1,4}-\d{1,4}-\d{4}"  # ハイフンあり
-            r"|0\d{9,10})"  # ハイフンなし（0始まり10〜11桁）
-            r"(?!\d)"  # 直後が数字ではない
+        rx = re.compile(
+            r"(?<!\d)("
+            r"0120-\d{3}-\d{3}"  # 0120-295-770
+            r"|0\d{1,4}-\d{1,4}-\d{3,4}"  # 03-1234-5678 / 099-123-4567 等（ざっくり許容）
+            r"|0\d{9,10}"  # 0始まり10〜11桁（ハイフンなし）
+            r")(?!\d)"
         )
-        if regex.search(text):
-            tel_number = regex.search(text).group(0)
+        if rx.search(text):
+            tel_number = rx.search(text).group(0)
 
         return tel_number
 
@@ -140,3 +156,33 @@ class Analyzer:
             registration_number = regex.search(text).group(0)
 
         return registration_number
+
+
+    def _get_sum_amount(self, text) -> str | None:
+        sum_amount = None
+
+        regex = re.compile(r"合計")
+
+        if regex.search(text):
+            self.sum_flg = True
+
+        if not self.sum_flg:
+            return None
+
+        num_full_re = re.compile(r"\d{1,3}(?:,\d{3})*$")
+        if num_full_re.search(text):
+            sum_amount = num_full_re.search(text).group(0)
+            sum_amount = sum_amount.replace(",", "")
+
+        return sum_amount
+
+
+    def _get_store_name(self, metadata) -> str | None:
+
+        stores = json.load(open("./store_data.json", "r", encoding="utf-8"))
+        for store in stores:
+            if store["registration_number"] == metadata["registration_number"]:
+                return store["name"]
+            if store["tel_number"] == metadata["tel_number"]:
+                return store["name"]
+        return None

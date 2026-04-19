@@ -1,6 +1,6 @@
 FROM python:3.12-slim
 
-# 環境変数（ログ周りの定番）
+# 環境変数
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
@@ -22,7 +22,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # アプリ本体
 COPY app/ /app/
-# レシートpdfファイル
-
 
 CMD ["python", "main.py"]
