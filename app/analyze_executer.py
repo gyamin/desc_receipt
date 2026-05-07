@@ -1,3 +1,5 @@
+import datetime
+import shutil
 from pathlib import Path
 from pdf2image import convert_from_path
 import pytesseract
@@ -35,8 +37,11 @@ def execute():
         receipt_values = analyzer.get_receipt_value()
 
         # 解析結果からファイル名を生成して、pdfファイルをoutput_dirに保存
-        # if not metadata['date']:
-        #     metadata['date'] = datetime.date.today()
-        #
-        # output_filename = f"{metadata['date'].strftime("%Y%m%d")}_{metadata['store_name']}_{metadata['sum']}.pdf"
-        # shutil.copy(pdf_file, OUTPUT_DIR + output_filename)
+        if not receipt_values.date:
+            receipt_values.date = datetime.date.today()
+
+        if not receipt_values.sum:
+            receipt_values.sum = 0
+
+        output_filename = f"{receipt_values.date.strftime("%Y%m%d")}_{receipt_values.store_name}_{receipt_values.sum:,}円.pdf"
+        shutil.copy(pdf_file, OUTPUT_DIR + output_filename)

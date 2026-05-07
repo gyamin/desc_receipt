@@ -139,17 +139,20 @@ class Analyzer:
     def _get_tel_number(self, text) -> str | None:
         tel_number = None
 
+        # -の前後のスペースを削除
+        text = re.sub(r"\s*-\s*", "-", text)
+
         tel_rx = re.compile(
             r"(?<!\d)("
-            r"0120(?P<sep1>[- ])\d{3}(?P=sep1)\d{3}"  # 0120-295-770 / 0120 295 770
-            r"|0\d{1,4}(?P<sep2>[- ])\d{1,4}(?P=sep2)\d{3,4}"  # 03-1234-5678 / 03 1234 5678 等
-            r"|0\d{9,10}"  # 0始まり10〜11桁（区切りなし）
+            r"0120-\d{3}-\d{3}"
+            r"|"
+            r"0\d{1,2}-\d{3,4}-\d{4}"
             r")(?!\d)"
         )
 
         m = tel_rx.search(text)
         if m:
-            tel_number = m.group(1).replace(" ", "")
+            tel_number = m.group(1)
 
         return tel_number
 
@@ -163,7 +166,7 @@ class Analyzer:
             registration_number = f"T{registration_number[-13:]}"
             return registration_number
 
-        regex = re.compile(r"(?=.*登録).*?(\d{14})")
+        regex = re.compile(r"(?=.*登録).*?(\d{13,14})")
         if regex.search(text):
             registration_number = regex.search(text).group(0)
             registration_number = f"T{registration_number[-13:]}"
