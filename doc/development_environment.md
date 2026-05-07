@@ -1,9 +1,8 @@
-# How to prepare local development environment.
+# ローカル開発環境構築手順
 
-## Outline
-- Python execution environment is given by docker container.
+## dockerコンテナ利用の場合
 
-## Execute main.py
+### Execute main.py
 ```
 % docker compose up
  ✔ Container desc_receipt-app-1 Recreated                                                       0.1s
@@ -12,15 +11,30 @@ app-1  | Hello, World!
 app-1 exited with code 0
 ```
 
-## Execution docker container on PyCharm.
+### PyCharm での実行設定
 
-### configure python interpreter.
+#### configure python interpreter.
 ![10001.png](img/10001.png)
 
-### debug and execute main.py.
+#### debug and execute main.py.
 ![10002.png](img/10002.png)
 
-### Install pip packages.
 
+## virtualenv利用の場合
 
+### python実行環境とvenv構築
+python
+```
+% pyenv local 3.12.12
+% pyenv versions
+  system
+  3.12.9
+* 3.12.12 (set by /xx/desc_receipt/.python-version)
+```
 
+venv
+```
+% python -m venv .venv
+% source .venv/bin/activate
+(venv) % pip install -r requirements.txt
+```

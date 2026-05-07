@@ -1,61 +1,66 @@
 import json
-import os
 import re
 import datetime
 from datetime import date
+from pprint import pprint
 from typing import Optional
+
+from app.libs.model.receipt_values import ReceiptValues
+from app.libs.model.sum_candidate import SumCandidate
 
 
 class Analyzer:
-    def __init__(self, lines: list[str] | None = None):
-        self.lines: list[str] = lines if lines is not None else []
-        self.cleaned_lines: list[str] = []
+    def __init__(self, lines: list[str]):
+        self.lines: list[str] = lines
+        self.cleaned_lines: list[str] = self._cleansing(lines)
+        self.sum_candidates: dict[str, SumCandidate] = {}
         self.sum_flg = False
 
-    def get_recite_metadata(self):
-        self._cleansing()
-        metadata = self.get_metadata()
-        return metadata
 
-    def _cleansing(self):
-        for line in self.lines:
+    @staticmethod
+    def _cleansing(lines):
+        cleaned_lines = []
+        for line in lines:
             # 不要文字削除
-            clean = re.sub(r"[^\w\u3040-\u30FF\u4E00-\u9FFF()-¥,.\\]+", "", line)
-            self.cleaned_lines.append(clean)
-            print(clean)
+            clean = re.sub(r"[^\w\u3040-\u30FF\u4E00-\u9FFF()-¥,. \\]+", "", line)
+            cleaned_lines.append(clean)
+        return cleaned_lines
 
-    def get_metadata(self):
 
-        meta_data = {
-            "store_name": None,
-            "registration_number": None,
-            "tel_number": None,
-            "date": None,
-            "time": None,
-            "sum": None
-        }
+    def get_receipt_value(self) -> ReceiptValues:
+        receipt_values = ReceiptValues()
 
         for line in self.cleaned_lines:
-            if meta_data['registration_number'] is None:
-                meta_data['registration_number'] = self._get_registration_number(line)
+            if receipt_values.registration_number is None:
+                receipt_values.registration_number = self._get_registration_number(line)
 
-            if meta_data['tel_number'] is None:
-                meta_data['tel_number'] = self._get_tel_number(line)
+            if receipt_values.tel_number is None:
+                receipt_values.tel_number = self._get_tel_number(line)
 
-            if meta_data['date'] is None:
-                meta_data['date'] = self._get_date(line)
+            if receipt_values.date is None:
+                receipt_values.date = self._get_date(line)
 
-            if meta_data['time'] is None:
-                meta_data['time'] = self._get_time(line)
+            if receipt_values.time is None:
+                receipt_values.time = self._get_time(line)
 
-            if meta_data['sum'] is None:
-                meta_data['sum'] = self._get_sum_amount(line)
+            self._get_sum(line)
 
-            if meta_data['store_name'] is None:
-                meta_data['store_name'] = self._get_store_name(meta_data)
+        # ストア名
+        if receipt_values.store_name is None:
+            receipt_values.store_name = self._get_store_name(receipt_values)
 
-        print(meta_data)
-        return meta_data
+        # 合計金額
+        if receipt_values.sum is None and self.sum_candidates:
+            max_candidate = max(
+                self.sum_candidates.values(),
+                key=lambda candidate: candidate.score
+            )
+            sum_amount = max_candidate.value
+            receipt_values.sum = sum_amount
+
+        pprint(receipt_values)
+        return receipt_values
+
 
     def _get_date(self, text) -> Optional[datetime.date]:
         rx_ymd_sep = re.compile(r"(?P<y>\d{4})[./-](?P<m>\d{1,2})[./-](?P<d>\d{1,2})")
@@ -134,15 +139,17 @@ class Analyzer:
     def _get_tel_number(self, text) -> str | None:
         tel_number = None
 
-        rx = re.compile(
+        tel_rx = re.compile(
             r"(?<!\d)("
-            r"0120-\d{3}-\d{3}"  # 0120-295-770
-            r"|0\d{1,4}-\d{1,4}-\d{3,4}"  # 03-1234-5678 / 099-123-4567 等（ざっくり許容）
-            r"|0\d{9,10}"  # 0始まり10〜11桁（ハイフンなし）
+            r"0120(?P<sep1>[- ])\d{3}(?P=sep1)\d{3}"  # 0120-295-770 / 0120 295 770
+            r"|0\d{1,4}(?P<sep2>[- ])\d{1,4}(?P=sep2)\d{3,4}"  # 03-1234-5678 / 03 1234 5678 等
+            r"|0\d{9,10}"  # 0始まり10〜11桁（区切りなし）
             r")(?!\d)"
         )
-        if rx.search(text):
-            tel_number = rx.search(text).group(0)
+
+        m = tel_rx.search(text)
+        if m:
+            tel_number = m.group(1).replace(" ", "")
 
         return tel_number
 
@@ -150,39 +157,79 @@ class Analyzer:
     def _get_registration_number(self, text) -> str | None:
         registration_number = None
 
-        regex = re.compile(r"(?<![0-9A-Za-z])T\d{13}(?![0-9A-Za-z])")
-
+        regex = re.compile(r"(?<![0-9A-Za-z])[T1]\d{13}(?![0-9A-Za-z])")
         if regex.search(text):
             registration_number = regex.search(text).group(0)
+            registration_number = f"T{registration_number[-13:]}"
+            return registration_number
+
+        regex = re.compile(r"(?=.*登録).*?(\d{14})")
+        if regex.search(text):
+            registration_number = regex.search(text).group(0)
+            registration_number = f"T{registration_number[-13:]}"
+            return registration_number
 
         return registration_number
 
-
-    def _get_sum_amount(self, text) -> str | None:
-        sum_amount = None
+    def _get_sum(self, text):
+        # 合計 という文字列の後に登場する以下のような合計金額と思われる文字列を取得
+        # 1,000
+        # 12,345
+        # 100
+        # 1000
+        # 上記の先頭に¥がつく場合も対象とする
 
         regex = re.compile(r"合計")
-
         if regex.search(text):
             self.sum_flg = True
 
-        if not self.sum_flg:
-            return None
+        if self.sum_flg:
+            m = re.search(r"(?:¥|￥|\\)?\s*(?P<amount>\d{1,3}(?:,\d{3})+|\d+)", text)
+            if m:
+                sum_amount = m.group("amount").replace(",", "")
+                self.sum_candidates["total_after_sum"] = SumCandidate(
+                    key="total_after_sum",
+                    value=sum_amount,
+                    score=1
+                )
+                return
 
-        num_full_re = re.compile(r"\d{1,3}(?:,\d{3})*$")
-        if num_full_re.search(text):
-            sum_amount = num_full_re.search(text).group(0)
-            sum_amount = sum_amount.replace(",", "")
+        # 金額と思われる文字列の最大値を合計金額とみなす
+        m = re.search(r"(?:¥|￥|\\)\s*(?P<amount>\d{1,3}(?:,\d{3})+|\d+)", text)
+        if m:
+            sum_amount = m.group("amount").replace(",", "")
 
-        return sum_amount
+            if not "start_¥mark_sum" in self.sum_candidates:
+                self.sum_candidates["start_¥mark_sum"] = SumCandidate(
+                    key="start_¥mark_sum",
+                    value=sum_amount,
+                    score=2
+                )
+                return
+
+            if int(sum_amount) > self.sum_candidates["start_¥mark_sum"].value:
+                self.sum_candidates["start_¥mark_sum"] = SumCandidate(
+                    key="start_¥mark_sum",
+                    value=sum_amount,
+                    score=2
+                )
+            return
 
 
-    def _get_store_name(self, metadata) -> str | None:
+    def _get_store_name(self, receipt_values) -> str | None:
 
         stores = json.load(open("./store_data.json", "r", encoding="utf-8"))
         for store in stores:
-            if store["registration_number"] == metadata["registration_number"]:
+            if store["registration_number"] == receipt_values.registration_number:
                 return store["name"]
-            if store["tel_number"] == metadata["tel_number"]:
+            if store["tel_number"] == receipt_values.tel_number:
                 return store["name"]
+
+        # 登録番号、電話番号で店舗名が見つからない場合、キーワードがレシート情報の文字列とマッチするかで、店舗名を取得する
+        for store in stores:
+            for keyword in store["keywords"]:
+                for line in self.cleaned_lines:
+                    if keyword in line:
+                        return store["name"]
+
         return None

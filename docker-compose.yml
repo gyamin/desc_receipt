@@ -4,4 +4,5 @@ services:
     volumes:
       - ./app:/app
       - ./receipts:/receipts
+      - ./output:/output
     command: python main.py

@@ -1,4 +1,4 @@
 pdf2image
 pytesseract
-Pillow
 pdfplumber
+pydantic

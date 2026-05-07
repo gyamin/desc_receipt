@@ -1,21 +1,24 @@
-import shutil
 from pathlib import Path
 from pdf2image import convert_from_path
 import pytesseract
-from app.analyzer import Analyzer
+from analyzer import Analyzer
 
-INPUT_PDF_DIR = "./../receipts/"
-OUTPUT_DIR = "./../output/"
+INPUT_PDF_DIR = "/receipts"
+OUTPUT_DIR = "/output/"
 
 def execute():
     # 拡張子が.pdfのファイル一覧を取得する
     pdf_files = list(Path(INPUT_PDF_DIR).glob("*.pdf"))
 
+    if not pdf_files:
+        print("No PDF files found in the input directory.")
+        return
+
 
     for pdf_file in pdf_files:
         images = convert_from_path(
             pdf_file,
-            dpi=300,
+            dpi=600,
         )
         img = images[0]
         lines = pytesseract.image_to_string(
@@ -25,12 +28,15 @@ def execute():
         )
         # 改行で配列にsplit
         lines = lines.split("\n")
+        print(lines)
 
         # OCR文字列からレシートメタ情報を取得する
         analyzer = Analyzer(lines)
-        metadata = analyzer.get_recite_metadata()
+        receipt_values = analyzer.get_receipt_value()
 
         # 解析結果からファイル名を生成して、pdfファイルをoutput_dirに保存
-        output_filename = f"{metadata['date'].strftime("%Y%m%d")}_{metadata['store_name']}_{metadata['sum']}.pdf"
-
-        shutil.copy(pdf_file, OUTPUT_DIR + output_filename)
+        # if not metadata['date']:
+        #     metadata['date'] = datetime.date.today()
+        #
+        # output_filename = f"{metadata['date'].strftime("%Y%m%d")}_{metadata['store_name']}_{metadata['sum']}.pdf"
+        # shutil.copy(pdf_file, OUTPUT_DIR + output_filename)
