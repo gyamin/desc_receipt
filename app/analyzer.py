@@ -5,8 +5,8 @@ from datetime import date
 from pprint import pprint
 from typing import Optional
 
-from app.libs.model.receipt_values import ReceiptValues
-from app.libs.model.sum_candidate import SumCandidate
+from libs.model.receipt_values import ReceiptValues
+from libs.model.sum_candidate import SumCandidate
 
 
 class Analyzer:
@@ -31,6 +31,7 @@ class Analyzer:
         receipt_values = ReceiptValues()
 
         for line in self.cleaned_lines:
+            print(f"{line}")
             if receipt_values.registration_number is None:
                 receipt_values.registration_number = self._get_registration_number(line)
 
@@ -192,7 +193,7 @@ class Analyzer:
                 sum_amount = m.group("amount").replace(",", "")
                 self.sum_candidates["total_after_sum"] = SumCandidate(
                     key="total_after_sum",
-                    value=sum_amount,
+                    value=int(sum_amount),
                     score=1
                 )
                 return
@@ -205,7 +206,7 @@ class Analyzer:
             if not "start_¥mark_sum" in self.sum_candidates:
                 self.sum_candidates["start_¥mark_sum"] = SumCandidate(
                     key="start_¥mark_sum",
-                    value=sum_amount,
+                    value=int(sum_amount),
                     score=2
                 )
                 return
@@ -213,7 +214,7 @@ class Analyzer:
             if int(sum_amount) > self.sum_candidates["start_¥mark_sum"].value:
                 self.sum_candidates["start_¥mark_sum"] = SumCandidate(
                     key="start_¥mark_sum",
-                    value=sum_amount,
+                    value=int(sum_amount),
                     score=2
                 )
             return

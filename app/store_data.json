@@ -1,5 +1,5 @@
 [
-  {"name": "フレンドマート", "registration_number":  "T3160001008726", "tel_number": "077-526-8790", "keywords": []},
+  {"name": "フレンドマート", "registration_number":  "T3160001008726", "tel_number": "077-526-8790", "keywords": ["フレンド"]},
   {"name": "スギ薬局", "registration_number":  "T7180301016951", "tel_number": "077-526-5923", "keywords": []},
   {"name": "バーガー・ワン", "registration_number":  "T16011101058111", "tel_number": "0120-295-770", "keywords": []},
   {"name": "ニューcafeタイム", "registration_number":  "", "tel_number": "090-9628-4009", "keywords": ["cafe"]},

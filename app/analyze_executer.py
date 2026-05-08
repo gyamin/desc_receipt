@@ -18,6 +18,7 @@ def execute():
 
 
     for pdf_file in pdf_files:
+        print(f"Processing PDF file: {pdf_file}")
         images = convert_from_path(
             pdf_file,
             dpi=600,
@@ -30,7 +31,6 @@ def execute():
         )
         # 改行で配列にsplit
         lines = lines.split("\n")
-        print(lines)
 
         # OCR文字列からレシートメタ情報を取得する
         analyzer = Analyzer(lines)
