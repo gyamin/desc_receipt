@@ -64,9 +64,14 @@ class Analyzer:
 
             self._get_sum(line)
 
-        # ストア名
-        if receipt_info.store_name is None:
-            receipt_info.store_name = self._get_store_name(receipt_info)
+        # store_data.json からストア名、借方・貸方科目名を取得
+        store_data = self._get_store_data(receipt_info)
+
+        # ストア名、貸方/借方科目名
+        if store_data is not None:
+            receipt_info.store_name = store_data.get("stor_name")
+            receipt_info.debit_account = store_data.get("debit_account")
+            receipt_info.credit_account = store_data.get("credit_account")
 
         # 合計金額
         if receipt_info.sum is None and self.sum_candidates:
@@ -206,9 +211,9 @@ class Analyzer:
             self.sum_flg = True
 
         if self.sum_flg:
-            m = re.search(r"(?:¥|￥|\\)?\s*(?P<amount>\d{1,3}(?:,\d{3})+|\d+)", text)
+            m = re.search(r"(?:¥|￥|\\)?\s*(?P<amount>\d{1,3}(?:,\s*\d{3})+|\d+)", text)
             if m:
-                sum_amount = m.group("amount").replace(",", "")
+                sum_amount = re.sub(r"[,\s]", "", m.group("amount"))
                 self.sum_candidates["total_after_sum"] = SumCandidate(
                     key="total_after_sum",
                     value=int(sum_amount),
@@ -217,9 +222,9 @@ class Analyzer:
                 return
 
         # 金額と思われる文字列の最大値を合計金額とみなす
-        m = re.search(r"(?:¥|￥|\\)\s*(?P<amount>\d{1,3}(?:,\d{3})+|\d+)", text)
+        m = re.search(r"(?:¥|￥|\\)\s*(?P<amount>\d{1,3}(?:,\s*\d{3})+|\d+)", text)
         if m:
-            sum_amount = m.group("amount").replace(",", "")
+            sum_amount = re.sub(r"[,\s]", "", m.group("amount"))
 
             if not "start_¥mark_sum" in self.sum_candidates:
                 self.sum_candidates["start_¥mark_sum"] = SumCandidate(
@@ -238,20 +243,20 @@ class Analyzer:
             return
 
 
-    def _get_store_name(self, receipt_values) -> str | None:
+    def _get_store_data(self, receipt_values) -> dict | None:
 
         stores = json.load(open("./store_data.json", "r", encoding="utf-8"))
         for store in stores:
             if store["registration_number"] == receipt_values.registration_number:
-                return store["name"]
+                return store
             if store["tel_number"] == receipt_values.tel_number:
-                return store["name"]
+                return store
 
         # 登録番号、電話番号で店舗名が見つからない場合、キーワードがレシート情報の文字列とマッチするかで、店舗名を取得する
         for store in stores:
             for keyword in store["keywords"]:
                 for line in self.cleaned_lines:
                     if keyword in line:
-                        return store["name"]
+                        return store
 
         return None

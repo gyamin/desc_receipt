@@ -1,16 +1,122 @@
 [
-  {"name": "フレンドマート", "registration_number":  "T3160001008726", "tel_number": "077-526-8790", "keywords": ["フレンド"]},
-  {"name": "スギ薬局", "registration_number":  "T7180301016951", "tel_number": "077-526-5923", "keywords": []},
-  {"name": "バーガー・ワン", "registration_number":  "T16011101058111", "tel_number": "0120-295-770", "keywords": []},
-  {"name": "ニューcafeタイム", "registration_number":  "", "tel_number": "090-9628-4009", "keywords": ["cafe"]},
-  {"name": "上原成商事", "registration_number":  "T4130001019956", "tel_number": "077-524-7311", "keywords": ["カーケアセンター大津中央"]},
-  {"name": "FUSE", "registration_number":  "", "tel_number": "", "keywords": ["FUSE", "マカロン"]},
-  {"name": "成城石井", "registration_number":  "T5010901028646", "tel_number": "075-223-5857", "keywords": []},
-  {"name": "こんき庵", "registration_number":  "T5160001009094", "tel_number": "077-572-9912", "keywords": []},
-  {"name": "マルニワールド", "registration_number":  "T4160001004757", "tel_number": "077-527-7217", "keywords": []},
-  {"name": "公益財団法人滋賀県産業支援プラザ", "registration_number":  "T5160005003201", "tel_number": "", "keywords": []},
-  {"name": "セリア", "registration_number":  "T4200001013662", "tel_number": "077-548-7522", "keywords": []},
-  {"name": "ジェイアール京都伊勢丹", "registration_number":  "T7130001017503", "tel_number": "077-548-7522", "keywords": []},
-  {"name": "ドンク", "registration_number":  "T4140001009659", "tel_number": "077-572-5509", "keywords": []},
-  {"name": "高見澤", "registration_number":  "T9100001001879", "tel_number": "026-257-2211", "keywords": []}
+  {
+    "name": "フレンドマート",
+    "registration_number": "T3160001008726",
+    "tel_number": "077-526-8790",
+    "keywords": ["フレンド"],
+    "debit_account": "会議費",
+    "credit_account": "普通預金"
+  },
+  {
+    "name": "スギ薬局",
+    "registration_number": "T7180301016951",
+    "tel_number": "077-526-5923",
+    "keywords": [],
+    "debit_account": "消耗品費",
+    "credit_account": "普通預金"
+  },
+  {
+    "name": "バーガー・ワン",
+    "registration_number": "T16011101058111",
+    "tel_number": "0120-295-770",
+    "keywords": [],
+    "debit_account": "会議費",
+    "credit_account": "役員借入金"
+  },
+  {
+    "name": "ニューcafeタイム",
+    "registration_number": "",
+    "tel_number": "090-9628-4009",
+    "keywords": ["cafe"],
+    "debit_account": "会議費",
+    "credit_account": "役員借入金"
+  },
+  {
+    "name": "上原成商事",
+    "registration_number": "T4130001019956",
+    "tel_number": "077-524-7311",
+    "keywords": ["カーケアセンター大津中央"],
+    "debit_account": "燃料費",
+    "credit_account": "役員借入金"
+  },
+  {
+    "name": "FUSE",
+    "registration_number": "",
+    "tel_number": "",
+    "keywords": ["FUSE", "マカロン"],
+    "debit_account": "交際費",
+    "credit_account": "役員借入金"
+  },
+  {
+    "name": "成城石井",
+    "registration_number": "T5010901028646",
+    "tel_number": "075-223-5857",
+    "keywords": [],
+    "debit_account": "消耗品費",
+    "credit_account": "役員借入金"
+  },
+  {
+    "name": "こんき庵",
+    "registration_number": "T5160001009094",
+    "tel_number": "077-572-9912",
+    "keywords": [],
+    "debit_account": "会議費",
+    "credit_account": "役員借入金"
+  },
+  {
+    "name": "マルニワールド",
+    "registration_number": "T4160001004757",
+    "tel_number": "077-527-7217",
+    "keywords": [],
+    "debit_account": "会議費",
+    "credit_account": "普通預金"
+  },
+  {
+    "name": "公益財団法人滋賀県産業支援プラザ",
+    "registration_number": "T5160005003201",
+    "tel_number": "",
+    "keywords": [],
+    "debit_account": "地代家賃",
+    "credit_account": "普通預金"
+  },
+  {
+    "name": "セリア",
+    "registration_number": "T4200001013662",
+    "tel_number": "077-548-7522",
+    "keywords": [],
+    "debit_account": "消耗品費",
+    "credit_account": "普通預金"
+  },
+  {
+    "name": "ジェイアール京都伊勢丹",
+    "registration_number": "T7130001017503",
+    "tel_number": "077-548-7522",
+    "keywords": [],
+    "debit_account": "会議費",
+    "credit_account": "役員借入金"
+  },
+  {
+    "name": "ドンク",
+    "registration_number": "T4140001009659",
+    "tel_number": "077-572-5509",
+    "keywords": [],
+    "debit_account": "会議費",
+    "credit_account": "普通預金"
+  },
+  {
+    "name": "高島屋",
+    "registration_number": "T5120001077467",
+    "tel_number": "075-221-881",
+    "keywords": [],
+    "debit_account": "消耗品費",
+    "credit_account": "役員借入金"
+  },
+  {
+    "name": "高見澤",
+    "registration_number": "T9100001001879",
+    "tel_number": "026-257-2211",
+    "keywords": [],
+    "debit_account": "燃料費",
+    "credit_account": "役員借入金"
+  }
 ]

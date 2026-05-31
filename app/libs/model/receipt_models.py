@@ -10,6 +10,8 @@ class ReceiptInfo(BaseModel):
     date: Optional[datetime.date] = None
     time: Optional[datetime.time] = None
     sum: Optional[int] = None
+    debit_account: Optional[str] = None
+    credit_account: Optional[str] = None
 
 class ReceiptResult(BaseModel):
     pdf_file_path: Path

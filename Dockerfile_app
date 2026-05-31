@@ -23,5 +23,6 @@ COPY app/ /app/
 
 WORKDIR /app
 
-ENTRYPOINT ["python", "main.py"]
-#CMD ["python", "main.py"]
+# ENTRYPOINT を指定すると、
+#ENTRYPOINT ["python", "main.py"]
+CMD ["python", "main.py"]

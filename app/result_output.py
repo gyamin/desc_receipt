@@ -44,13 +44,13 @@ class ResultOutput:
                     f"{index:04d}.pdf",   # 伝病No　pdfのファイル名として利用
                     None,   # 決算
                     receipt_info.date.strftime("%Y%m%d"),   # 取引日付
-                    "雑費",   # 借方科目
+                    receipt_info.debit_account,   # 借方科目
                     None,   # 借方科目補助
                     None,   # 借方部門
                     None,   # 借方税区分
                     receipt_info.sum,   # 借方金額
                     None,   # 借方税金額
-                    "普通預金",  # 貸方科目
+                    receipt_info.credit_account,  # 貸方科目
                     None,
                     None,
                     None,

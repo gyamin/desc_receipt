@@ -13,10 +13,10 @@
 
 #### pdfファイル解析
 ```
-% docker run --rm --name desc_receipt --mode desc \
+% docker run --rm --name desc_receipt \
 -v ~/Library/CloudStorage/OneDrive-個人用/ドキュメント:/receipts \
 -v ~/Desktop/レシート:/output \
-desc_receipt:latest
+desc_receipt:latest --mode desc
 ```
 
 #### pdfファイル名変更
