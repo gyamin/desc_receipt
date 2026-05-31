@@ -69,7 +69,7 @@ class Analyzer:
 
         # ストア名、貸方/借方科目名
         if store_data is not None:
-            receipt_info.store_name = store_data.get("stor_name")
+            receipt_info.store_name = store_data.get("store_name")
             receipt_info.debit_account = store_data.get("debit_account")
             receipt_info.credit_account = store_data.get("credit_account")
 

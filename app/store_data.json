@@ -1,6 +1,6 @@
 [
   {
-    "name": "フレンドマート",
+    "store_name": "フレンドマート",
     "registration_number": "T3160001008726",
     "tel_number": "077-526-8790",
     "keywords": ["フレンド"],
@@ -8,7 +8,7 @@
     "credit_account": "普通預金"
   },
   {
-    "name": "スギ薬局",
+    "store_name": "スギ薬局",
     "registration_number": "T7180301016951",
     "tel_number": "077-526-5923",
     "keywords": [],
@@ -16,7 +16,7 @@
     "credit_account": "普通預金"
   },
   {
-    "name": "バーガー・ワン",
+    "store_name": "バーガー・ワン",
     "registration_number": "T16011101058111",
     "tel_number": "0120-295-770",
     "keywords": [],
@@ -24,7 +24,7 @@
     "credit_account": "役員借入金"
   },
   {
-    "name": "ニューcafeタイム",
+    "store_name": "ニューcafeタイム",
     "registration_number": "",
     "tel_number": "090-9628-4009",
     "keywords": ["cafe"],
@@ -32,7 +32,7 @@
     "credit_account": "役員借入金"
   },
   {
-    "name": "上原成商事",
+    "store_name": "上原成商事",
     "registration_number": "T4130001019956",
     "tel_number": "077-524-7311",
     "keywords": ["カーケアセンター大津中央"],
@@ -40,7 +40,7 @@
     "credit_account": "役員借入金"
   },
   {
-    "name": "FUSE",
+    "store_name": "FUSE",
     "registration_number": "",
     "tel_number": "",
     "keywords": ["FUSE", "マカロン"],
@@ -48,7 +48,7 @@
     "credit_account": "役員借入金"
   },
   {
-    "name": "成城石井",
+    "store_name": "成城石井",
     "registration_number": "T5010901028646",
     "tel_number": "075-223-5857",
     "keywords": [],
@@ -56,7 +56,7 @@
     "credit_account": "役員借入金"
   },
   {
-    "name": "こんき庵",
+    "store_name": "こんき庵",
     "registration_number": "T5160001009094",
     "tel_number": "077-572-9912",
     "keywords": [],
@@ -64,7 +64,7 @@
     "credit_account": "役員借入金"
   },
   {
-    "name": "マルニワールド",
+    "store_name": "マルニワールド",
     "registration_number": "T4160001004757",
     "tel_number": "077-527-7217",
     "keywords": [],
@@ -72,7 +72,7 @@
     "credit_account": "普通預金"
   },
   {
-    "name": "公益財団法人滋賀県産業支援プラザ",
+    "store_name": "公益財団法人滋賀県産業支援プラザ",
     "registration_number": "T5160005003201",
     "tel_number": "",
     "keywords": [],
@@ -80,7 +80,7 @@
     "credit_account": "普通預金"
   },
   {
-    "name": "セリア",
+    "store_name": "セリア",
     "registration_number": "T4200001013662",
     "tel_number": "077-548-7522",
     "keywords": [],
@@ -88,7 +88,7 @@
     "credit_account": "普通預金"
   },
   {
-    "name": "ジェイアール京都伊勢丹",
+    "store_name": "ジェイアール京都伊勢丹",
     "registration_number": "T7130001017503",
     "tel_number": "077-548-7522",
     "keywords": [],
@@ -96,7 +96,7 @@
     "credit_account": "役員借入金"
   },
   {
-    "name": "ドンク",
+    "store_name": "ドンク",
     "registration_number": "T4140001009659",
     "tel_number": "077-572-5509",
     "keywords": [],
@@ -104,7 +104,7 @@
     "credit_account": "普通預金"
   },
   {
-    "name": "高島屋",
+    "store_name": "高島屋",
     "registration_number": "T5120001077467",
     "tel_number": "075-221-881",
     "keywords": [],
@@ -112,7 +112,15 @@
     "credit_account": "役員借入金"
   },
   {
-    "name": "高見澤",
+    "store_name": "CoCo壱番屋",
+    "registration_number": "T760001005404",
+    "tel_number": "077-525-8781",
+    "keywords": ["ココイチ"],
+    "debit_account": "会議費",
+    "credit_account": "役員借入金"
+  },
+  {
+    "store_name": "高見澤",
     "registration_number": "T9100001001879",
     "tel_number": "026-257-2211",
     "keywords": [],
