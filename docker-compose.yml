@@ -1,7 +1,8 @@
 services:
   app:
-    build: .
+    build:
+      dockerfile: Dockerfile_app
     volumes:
       - ./receipts:/receipts
       - ./output:/output
-    command: python main.py
+    command: ["python", "main.py"]

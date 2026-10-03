@@ -1,12 +1,12 @@
-import datetime
-import shutil
+import csv
 from pathlib import Path
-from pdf2image import convert_from_path
-import pytesseract
 from analyzer import Analyzer
+from libs.model.receipt_models import ReceiptResult
+from result_output import ResultOutput
 
 INPUT_PDF_DIR = "/receipts"
 OUTPUT_DIR = "/output/"
+YAYOI_CSV_FILE_PATH = "/output/yayoi.csv"
 
 def execute():
     # 拡張子が.pdfのファイル一覧を取得する
@@ -16,32 +16,54 @@ def execute():
         print("No PDF files found in the input directory.")
         return
 
+    # pdfファイルパスをキーに解析結果を保持
+    receipt_results:list[ReceiptResult] = []
 
     for pdf_file in pdf_files:
-        print(f"Processing PDF file: {pdf_file}")
-        images = convert_from_path(
-            pdf_file,
-            dpi=600,
-        )
-        img = images[0]
-        lines = pytesseract.image_to_string(
-            img,
-            lang="jpn+eng",  # 日本語+英数字
-            config="--psm 6"  # ざっくり「ブロック内に複数行」想定。レシートに相性良いことが多い
-        )
-        # 改行で配列にsplit
-        lines = lines.split("\n")
-
         # OCR文字列からレシートメタ情報を取得する
-        analyzer = Analyzer(lines)
-        receipt_values = analyzer.get_receipt_value()
+        analyzer = Analyzer(pdf_file)
+        receipt_info = analyzer.get_receipt_info()
+        receipt_results.append(ReceiptResult(pdf_file_path=pdf_file, receipt_info=receipt_info))
 
-        # 解析結果からファイル名を生成して、pdfファイルをoutput_dirに保存
-        if not receipt_values.date:
-            receipt_values.date = datetime.date.today()
+    # 解析結果を出力する
+    result_output = ResultOutput(receipt_results, OUTPUT_DIR, YAYOI_CSV_FILE_PATH)
+    result_output.output()
 
-        if not receipt_values.sum:
-            receipt_values.sum = 0
 
-        output_filename = f"{receipt_values.date.strftime("%Y%m%d")}_{receipt_values.store_name}_{receipt_values.sum:,}円.pdf"
-        shutil.copy(pdf_file, OUTPUT_DIR + output_filename)
+def rename_file():
+    # YAYOI_CSV_FILE_PATH をループ処理し、B列の値のpdfをリネームする
+    with open(YAYOI_CSV_FILE_PATH, "r", newline="", encoding="cp932") as file:
+        reader = csv.reader(file)
+
+        for row in reader:
+            # 空行や列数不足の行はスキップ
+            if len(row) < 26:
+                continue
+
+            current_pdf_name = row[1]  # B列: 現在のPDFファイル名
+            transaction_date = row[3]  # D列: 取引日付
+            amount = row[8]  # I列: 金額
+            memo = row[16]  # Q列: 適用
+            store_name = row[25]  # Z列: 店舗名
+
+            if not current_pdf_name:
+                continue
+
+            safe_store_name = _sanitize_filename(store_name)
+            new_pdf_name = f"{transaction_date}_{safe_store_name}_{memo}_{int(amount):,}.pdf"
+
+            current_pdf_path = Path(OUTPUT_DIR) / f"{current_pdf_name}"
+            new_pdf_path = Path(OUTPUT_DIR) / new_pdf_name
+
+            if not current_pdf_path.exists():
+                print(f"PDF file not found: {current_pdf_path}")
+                continue
+
+            current_pdf_path.rename(new_pdf_path)
+            print(f"Renamed: {current_pdf_path} -> {new_pdf_path}")
+
+def _sanitize_filename(value: str) -> str:
+    invalid_chars = '\\/:*?"<>|'
+    for char in invalid_chars:
+        value = value.replace(char, "_")
+    return value.strip()

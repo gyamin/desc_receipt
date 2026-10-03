@@ -9,11 +9,20 @@
 % docker build -t desc_receipt .
 ```
 
-### コンテナ実行
+### 処理実行方法
+
+#### pdfファイル解析
 ```
-% docker run --name desc_receipt \
+% docker run --rm --name desc_receipt \
 -v ~/Library/CloudStorage/OneDrive-個人用/ドキュメント:/receipts \
 -v ~/Desktop/レシート:/output \
-desc_receipt:latest
+desc_receipt:latest --mode desc
 ```
 
+#### pdfファイル名変更
+```
+% docker run --rm --name desc_receipt \
+-v ~/Library/CloudStorage/OneDrive-個人用/ドキュメント:/receipts \
+-v ~/Desktop/レシート:/output \
+desc_receipt:latest --mode rename
+```

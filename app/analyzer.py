@@ -4,13 +4,31 @@ import datetime
 from datetime import date
 from pprint import pprint
 from typing import Optional
+from pdf2image import convert_from_path
+import pytesseract
 
-from libs.model.receipt_values import ReceiptValues
+from libs.model.receipt_models import ReceiptInfo
 from libs.model.sum_candidate import SumCandidate
 
 
 class Analyzer:
-    def __init__(self, lines: list[str]):
+    def __init__(self, pdf_file):
+        self.pdf_file = pdf_file
+
+        print(f"Processing PDF file: {pdf_file}")
+        images = convert_from_path(
+            pdf_file,
+            dpi=600,
+        )
+        img = images[0]
+        lines = pytesseract.image_to_string(
+            img,
+            lang="jpn+eng",  # 日本語+英数字
+            config="--psm 6"  # ざっくり「ブロック内に複数行」想定。レシートに相性良いことが多い
+        )
+        # 改行で配列にsplit
+        lines = lines.split("\n")
+
         self.lines: list[str] = lines
         self.cleaned_lines: list[str] = self._cleansing(lines)
         self.sum_candidates: dict[str, SumCandidate] = {}
@@ -27,40 +45,45 @@ class Analyzer:
         return cleaned_lines
 
 
-    def get_receipt_value(self) -> ReceiptValues:
-        receipt_values = ReceiptValues()
+    def get_receipt_info(self) -> ReceiptInfo:
+        receipt_info = ReceiptInfo()
 
         for line in self.cleaned_lines:
             print(f"{line}")
-            if receipt_values.registration_number is None:
-                receipt_values.registration_number = self._get_registration_number(line)
+            if receipt_info.registration_number is None:
+                receipt_info.registration_number = self._get_registration_number(line)
 
-            if receipt_values.tel_number is None:
-                receipt_values.tel_number = self._get_tel_number(line)
+            if receipt_info.tel_number is None:
+                receipt_info.tel_number = self._get_tel_number(line)
 
-            if receipt_values.date is None:
-                receipt_values.date = self._get_date(line)
+            if receipt_info.date is None:
+                receipt_info.date = self._get_date(line)
 
-            if receipt_values.time is None:
-                receipt_values.time = self._get_time(line)
+            if receipt_info.time is None:
+                receipt_info.time = self._get_time(line)
 
             self._get_sum(line)
 
-        # ストア名
-        if receipt_values.store_name is None:
-            receipt_values.store_name = self._get_store_name(receipt_values)
+        # store_data.json からストア名、借方・貸方科目名を取得
+        store_data = self._get_store_data(receipt_info)
+
+        # ストア名、貸方/借方科目名
+        if store_data is not None:
+            receipt_info.store_name = store_data.get("store_name")
+            receipt_info.debit_account = store_data.get("debit_account")
+            receipt_info.credit_account = store_data.get("credit_account")
 
         # 合計金額
-        if receipt_values.sum is None and self.sum_candidates:
+        if receipt_info.sum is None and self.sum_candidates:
             max_candidate = max(
                 self.sum_candidates.values(),
                 key=lambda candidate: candidate.score
             )
             sum_amount = max_candidate.value
-            receipt_values.sum = sum_amount
+            receipt_info.sum = sum_amount
 
-        pprint(receipt_values)
-        return receipt_values
+        pprint(receipt_info)
+        return receipt_info
 
 
     def _get_date(self, text) -> Optional[datetime.date]:
@@ -188,9 +211,9 @@ class Analyzer:
             self.sum_flg = True
 
         if self.sum_flg:
-            m = re.search(r"(?:¥|￥|\\)?\s*(?P<amount>\d{1,3}(?:,\d{3})+|\d+)", text)
+            m = re.search(r"(?:¥|￥|\\)?\s*(?P<amount>\d{1,3}(?:,\s*\d{3})+|\d+)", text)
             if m:
-                sum_amount = m.group("amount").replace(",", "")
+                sum_amount = re.sub(r"[,\s]", "", m.group("amount"))
                 self.sum_candidates["total_after_sum"] = SumCandidate(
                     key="total_after_sum",
                     value=int(sum_amount),
@@ -199,9 +222,9 @@ class Analyzer:
                 return
 
         # 金額と思われる文字列の最大値を合計金額とみなす
-        m = re.search(r"(?:¥|￥|\\)\s*(?P<amount>\d{1,3}(?:,\d{3})+|\d+)", text)
+        m = re.search(r"(?:¥|￥|\\)\s*(?P<amount>\d{1,3}(?:,\s*\d{3})+|\d+)", text)
         if m:
-            sum_amount = m.group("amount").replace(",", "")
+            sum_amount = re.sub(r"[,\s]", "", m.group("amount"))
 
             if not "start_¥mark_sum" in self.sum_candidates:
                 self.sum_candidates["start_¥mark_sum"] = SumCandidate(
@@ -220,20 +243,20 @@ class Analyzer:
             return
 
 
-    def _get_store_name(self, receipt_values) -> str | None:
+    def _get_store_data(self, receipt_values) -> dict | None:
 
         stores = json.load(open("./store_data.json", "r", encoding="utf-8"))
         for store in stores:
             if store["registration_number"] == receipt_values.registration_number:
-                return store["name"]
+                return store
             if store["tel_number"] == receipt_values.tel_number:
-                return store["name"]
+                return store
 
         # 登録番号、電話番号で店舗名が見つからない場合、キーワードがレシート情報の文字列とマッチするかで、店舗名を取得する
         for store in stores:
             for keyword in store["keywords"]:
                 for line in self.cleaned_lines:
                     if keyword in line:
-                        return store["name"]
+                        return store
 
         return None
